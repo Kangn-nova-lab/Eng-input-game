@@ -13,6 +13,7 @@
 <body>
     <div id="intro-screen">
         <h1>Typing Practice</h1>
+        <input type="text" id="player-name" placeholder="Enter your name">
         <button id="start-button">Start Game</button>
     </div>
 
@@ -33,7 +34,14 @@
             <h2>Game Over</h2>
             <p>Your final score is <span id="final-score"></span>.</p>
             <button id="restart-button">Restart</button>
+            <button id="leaderboard-button">Leaderboard</button>
         </div>
+    </div>
+
+    <div id="leaderboard-screen" class="hidden">
+        <h2>Leaderboard</h2>
+        <ol id="leaderboard-list"></ol>
+        <button id="back-to-intro-button">Back to Intro</button>
     </div>
 
     <script src="main.js"></script>

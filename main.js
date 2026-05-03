@@ -1,7 +1,16 @@
+
 const introScreen = document.getElementById('intro-screen');
 const gameContent = document.getElementById('game-content');
+const leaderboardScreen = document.getElementById('leaderboard-screen');
+
 const startButton = document.getElementById('start-button');
 const pauseButton = document.getElementById('pause-button');
+const restartButton = document.getElementById("restart-button");
+const leaderboardButton = document.getElementById('leaderboard-button');
+const backToIntroButton = document.getElementById('back-to-intro-button');
+
+const playerNameInput = document.getElementById('player-name');
+const leaderboardList = document.getElementById('leaderboard-list');
 
 const gameArea = document.getElementById("game-area");
 const typeInput = document.getElementById("type-input");
@@ -9,7 +18,6 @@ const timeDisplay = document.getElementById("time");
 const scoreDisplay = document.getElementById("score");
 const gameOverDisplay = document.getElementById("game-over");
 const finalScoreDisplay = document.getElementById("final-score");
-const restartButton = document.getElementById("restart-button");
 const speedSlider = document.getElementById("speed-slider");
 const speedValue = document.getElementById("speed-value");
 
@@ -22,9 +30,12 @@ let timerInterval;
 let wordsOnScreen = [];
 let speed = 1;
 let isPaused = false;
+let playerName = "Anonymous";
 
 function initGame() {
+    playerName = playerNameInput.value || "Anonymous";
     introScreen.classList.add('hidden');
+    leaderboardScreen.classList.add('hidden');
     gameContent.classList.remove('hidden');
     startGame();
 }
@@ -78,7 +89,7 @@ function createWord() {
 
 function moveWords() {
     if (isPaused || time <= 0) {
-        if (time > 0) requestAnimationFrame(moveWords); // Keep checking if unpaused
+        if (time > 0) requestAnimationFrame(moveWords);
         return;
     }
 
@@ -105,6 +116,41 @@ function endGame() {
     gameOverDisplay.classList.remove("hidden");
     finalScoreDisplay.textContent = score;
     typeInput.disabled = true;
+    saveScore(playerName, score);
+}
+
+function saveScore(name, score) {
+    const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    leaderboard.push({ name, score });
+    leaderboard.sort((a, b) => b.score - a.score);
+    const top10 = leaderboard.slice(0, 10);
+    localStorage.setItem('leaderboard', JSON.stringify(top10));
+}
+
+function showLeaderboard() {
+    gameContent.classList.add('hidden');
+    gameOverDisplay.classList.add('hidden');
+    leaderboardScreen.classList.remove('hidden');
+    populateLeaderboard();
+}
+
+function populateLeaderboard() {
+    const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    leaderboardList.innerHTML = '';
+    if (leaderboard.length === 0) {
+        leaderboardList.innerHTML = '<li>No scores yet. Be the first!</li>';
+    } else {
+        leaderboard.forEach((entry, index) => {
+            const li = document.createElement('li');
+            li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
+            leaderboardList.appendChild(li);
+        });
+    }
+}
+
+function showIntroScreen() {
+    leaderboardScreen.classList.add('hidden');
+    introScreen.classList.remove('hidden');
 }
 
 function togglePause() {
@@ -112,15 +158,15 @@ function togglePause() {
     if (isPaused) {
         pauseButton.textContent = 'Resume';
         typeInput.disabled = true;
-        clearInterval(timerInterval); // Pauses the timer
-        clearInterval(gameInterval); // Pauses word creation
+        clearInterval(timerInterval);
+        clearInterval(gameInterval);
     } else {
         pauseButton.textContent = 'Pause';
         typeInput.disabled = false;
         typeInput.focus();
-        timerInterval = setInterval(updateTime, 1000); // Resumes the timer
-        gameInterval = setInterval(createWord, 1500); // Resumes word creation
-        requestAnimationFrame(moveWords); // Restarts the animation frame loop
+        timerInterval = setInterval(updateTime, 1000);
+        gameInterval = setInterval(createWord, 1500);
+        requestAnimationFrame(moveWords);
     }
 }
 
@@ -161,3 +207,5 @@ speedSlider.addEventListener('input', (e) => {
 startButton.addEventListener('click', initGame);
 pauseButton.addEventListener('click', togglePause);
 restartButton.addEventListener("click", startGame);
+leaderboardButton.addEventListener('click', showLeaderboard);
+backToIntroButton.addEventListener('click', showIntroScreen);
